@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, ZoomIn, MapPin, Upload, Trash2, Lock, Unlock } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc } from 'firebase/firestore';
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// --- LIVE FIREBASE CONFIGURATION ---
 const firebaseConfig = {
   apiKey: "AIza" + "SyBEiM4TJYIjFj4uQQMKM05uAVarxN6f8ik",
   authDomain: "gi-reception-e-gallery.firebaseapp.com",
@@ -14,16 +14,10 @@ const firebaseConfig = {
   appId: "1:462787555752:web:b5aa4bda0704f48badad9d",
   measurementId: "G-7TXSKPZV1H"
 };
-let app, auth, db, appId;
-try {
-  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-  appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-} catch (error) {
-  console.error("Firebase initialization error:", error);
-}
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -50,11 +44,7 @@ export default function App() {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
+        await signInAnonymously(auth);
       } catch (error) {
         console.error("Authentication failed:", error);
       }
@@ -70,8 +60,8 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
 
-    // Using the secure path required for the preview environment
-    const artworksRef = collection(db, 'artifacts', appId, 'public', 'data', 'artworks');
+    // --- LIVE DATABASE PATH ---
+    const artworksRef = collection(db, 'artworks');
     const unsubscribeData = onSnapshot(artworksRef, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       data.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -153,7 +143,7 @@ export default function App() {
     
     setIsUploading(true);
     try {
-      const artworksRef = collection(db, 'artifacts', appId, 'public', 'data', 'artworks');
+      const artworksRef = collection(db, 'artworks');
       await addDoc(artworksRef, { ...newArt, createdAt: Date.now() });
       setNewArt({ title: '', artist: '', location: '', description: '', imageBase64: '' });
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -167,7 +157,7 @@ export default function App() {
     e.stopPropagation();
     if(window.confirm("Are you sure you want to remove this photo from the gallery?")) {
       try {
-        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'artworks', id));
+        await deleteDoc(doc(db, 'artworks', id));
       } catch (error) {
         console.error("Error deleting artwork:", error);
       }
