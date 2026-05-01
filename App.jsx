@@ -164,7 +164,7 @@ export default function App() {
     }
   };
 
-// --- WEEKLY FEATURED ARTWORK LOGIC ---
+  // --- WEEKLY FEATURED ARTWORK LOGIC ---
   const getWeeklyFeatured = (allArtworks) => {
     // If there are 3 or fewer photos in the gallery, just show them all
     if (allArtworks.length <= 3) return allArtworks;
