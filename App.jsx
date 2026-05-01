@@ -164,7 +164,29 @@ export default function App() {
     }
   };
 
-  const featuredArtworks = artworks.slice(0, 3);
+// --- WEEKLY FEATURED ARTWORK LOGIC ---
+  const getWeeklyFeatured = (allArtworks) => {
+    // If there are 3 or fewer photos in the gallery, just show them all
+    if (allArtworks.length <= 3) return allArtworks;
+    
+    // Create a unique ID for the current week (changes exactly once every 7 days)
+    const currentWeekId = Math.floor(Date.now() / (1000 * 60 * 60 * 24 * 7)).toString();
+    
+    // Create a weekly "shuffled" list
+    return [...allArtworks].sort((a, b) => {
+      // Calculate a unique score based on the photo's ID and the current week ID
+      const scoreA = (a.id + currentWeekId).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+      const scoreB = (b.id + currentWeekId).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+      
+      // Scramble the score so it feels truly random
+      const randomA = Math.sin(scoreA) * 10000;
+      const randomB = Math.sin(scoreB) * 10000;
+      
+      return (randomA - Math.floor(randomA)) - (randomB - Math.floor(randomB));
+    }).slice(0, 3);
+  };
+
+  const featuredArtworks = getWeeklyFeatured(artworks);
 
   return (
     <div className="min-h-screen bg-stone-50 font-sans text-stone-800 flex flex-col selection:bg-stone-200">
